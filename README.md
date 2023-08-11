@@ -60,7 +60,7 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 
 1. Retrieve your MKR WAN 1310's DevEUI by using `main.ino` in your `Arduino IDE`. The serial monitor will display your DevEUI.
 
-    <img src='./images/app_key.png' alt='Connected Board' height='400'>
+    <img src='./images/DevEUI.jpeg' alt='Connected Board' height='400'>
 
     >NOTE: The program will fail because the device hasn't been given an App key
 
