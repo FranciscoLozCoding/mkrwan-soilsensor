@@ -8,6 +8,7 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 ---
 
 ## Table of Contents
+1. Features
 1. Hardware Needed
 1. Installing Software
 1. Connecting MKR WAN 1310 to Sensor
@@ -58,9 +59,11 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 
 [Chirpstack](https://www.chirpstack.io/) was used to setup our LoRaWAN network and a RAK Discover Kit 2 was used as our Gateway.
 
+>NOTE: We are using `US915` as our LoraWAN region. This must be changed in `main.ino` for different countries.
+
 1. Retrieve your MKR WAN 1310's DevEUI by using `main.ino` in your `Arduino IDE`. The serial monitor will display your DevEUI.
 
-    <img src='./images/DevEUI.jpeg' alt='Connected Board' height='400'>
+    <img src='./images/DevEUI.jpeg' alt='DevEUI' height='50'>
 
     >NOTE: The program will fail because the device hasn't been given an App key
 
@@ -68,4 +71,14 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 
 1. Once you've added your device, generate an application key or create one via the 'OTAA Keys' tab.
 
-    <img src='./images/app_key.png' alt='Connected Board' height='400'>
+    <img src='./images/app_key.png' alt='App key' height='400'>
+
+1. Provide the application key to `arduino_secrets.h`
+
+    >NOTE: Chripstack does not use `APP EUI` when connecting devices via `OTAA` so this can be left as is.
+
+1. Run `main.ino` in your `Arduino IDE`, if the device connects successfully the serial monitor will display the values the device is sending and chirpstack will receive a `join request` then the device's values.
+
+    <img src='./images/uplink_packet.png' alt='Uplink Packet' height='500'>
+
+    >NOTE: The device might take a couple of minutes to join the LoRaWAN network.
