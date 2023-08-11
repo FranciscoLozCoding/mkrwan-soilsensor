@@ -98,7 +98,7 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 
 Viewing the uplink packets by clicking `up` in the device's events tab will now display the measurements and its values.
 
-<img src='./images/decoded_packets.png' alt='Decoded Packets' height='500'>
+<img src='./images/decoded_packets.png' alt='Decoded Packets' height='700'>
 
 ## LoRaWAN Downlink Commands
 
