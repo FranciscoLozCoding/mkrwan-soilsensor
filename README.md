@@ -87,7 +87,7 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 
 ## Testing Soil Sensor Using Chirpstack
 
-[Chirpstack](https://www.chirpstack.io/) was used to setup our LoRaWAN network and a `RAK Discover Kit 2` was used as our Gateway.
+[Chirpstack](https://www.chirpstack.io/) was used as our Network Server and a `RAK Discover Kit 2` was used as our Gateway.
 
 1. Retrieve your MKR WAN 1310's DevEUI by using `main.ino` in your `Arduino IDE`. The serial monitor will display your DevEUI.
 
