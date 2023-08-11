@@ -8,13 +8,13 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 ---
 
 ## Table of Contents
-1. Features
-1. Hardware Needed
-1. Installing Software
-1. Connecting MKR WAN 1310 to Sensor
-1. Connect MKR WAN 1310 to Computer
-1. Testing Soil Sensor Using Chirpstack
-1. LoRaWAN Downlink Commands
+1. [Features](#features)
+1. [Hardware Needed](#hardware-needed)
+1. [Installing Software](#installing-software)
+1. [Connecting MKR WAN 1310 to Sensor](#connecting-mkr-wan-1310-to-sensor)
+1. [Connect MKR WAN 1310 to Computer](#connect-mkr-wan-1310-to-computer)
+1. [Testing Soil Sensor Using Chirpstack](#testing-soil-sensor-using-chirpstack)
+1. [LoRaWAN Downlink Commands](#lorawan-downlink-commands)
 
 ## Features
 
