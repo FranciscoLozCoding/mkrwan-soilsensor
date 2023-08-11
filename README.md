@@ -14,6 +14,13 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 1. Connecting MKR WAN 1310 to Sensor
 1. Connect MKR WAN 1310 to Computer
 1. Testing Soil Sensor Using Chirpstack
+1. LoRaWAN Downlink Commands
+
+## Features
+
+- Measures soil temperature and soil moisture in volts
+- Communicates via LoRaWAN
+- Receives LoRaWAN Downlink Commands
 
 ## Hardware Needed
 
@@ -92,3 +99,27 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 Viewing the uplink packets by clicking `up` in the device's events tab will now display the measurements and its values.
 
 <img src='./images/decoded_packets.png' alt='Decoded Packets' height='500'>
+
+## LoRaWAN Downlink Commands
+
+Using the Network Server’s portal or API to send a downlink command, the device will respond to the ack. The downlink command takes effect and responds the next time the device uploads data.
+
+### Changing the Data Uplink Interval
+
+1. Send the downlink command (HEX) via Fport=1.
+
+    Command List:
+
+    | Description | Command |
+    | ------------- |:-------:|
+    | Set Uplink interval = 1 min (default) | 00 |
+    | Set Uplink interval = 5 min | 01 |
+    | Set Uplink interval = 15 min | 02 |
+    | Set Uplink interval = 30 min | 03 |
+    | Set Uplink interval = 1 hr | 04 |
+
+2. Example: Set the device's uplink interval to 5 minutes using Chirpstack.
+
+    <img src='./images/downlink_command.png' alt='Downlink Command' height='400'>
+
+    Pressing `Enqueue` will send the downlink command next time the device uploads data. Essentially placing the command in a *queue*.
