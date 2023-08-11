@@ -79,6 +79,16 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 
 1. Run `main.ino` in your `Arduino IDE`, if the device connects successfully the serial monitor will display the values the device is sending and chirpstack will receive a `join request` then the device's values.
 
+    <img src='./images/values_sent.jpeg' alt='values sent' height='100'>
+
     <img src='./images/uplink_packet.png' alt='Uplink Packet' height='500'>
 
     >NOTE: The device might take a couple of minutes to join the LoRaWAN network.
+
+1. Finally for chirpstack to decript the uplink packets, provide the `codec.js` via the Device Profile's Codec tab.
+
+    <img src='./images/codec_tab.png' alt='Codec Tab' height='500'>
+
+Viewing the uplink packets by clicking `up` in the device's events tab will now display the measurements and its values.
+
+<img src='./images/decoded_packets.png' alt='Decoded Packets' height='500'>

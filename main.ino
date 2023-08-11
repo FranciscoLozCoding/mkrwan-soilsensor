@@ -83,11 +83,11 @@ void loop() {
   Serial.print("Sending values:");
   Serial.println();
   Serial.print("Temp: ");
-  Serial.print(t_volt);
+  Serial.print(t_volt*1000);
   Serial.println();
   Serial.print("Moisture: ");
   Serial.println();
-  Serial.print(m_volt);
+  Serial.print(m_volt*1000);
   Serial.println();
 
   //send packets
