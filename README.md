@@ -120,6 +120,6 @@ Using the Network Server’s portal or API to send a downlink command, the devic
 
 2. Example: Set the device's uplink interval to 5 minutes using Chirpstack.
 
-    <img src='./images/downlink_command.png' alt='Downlink Command' height='400'>
+    <img src='./images/downlink_command.png' alt='Downlink Command' height='600'>
 
     Pressing `Enqueue` will send the downlink command next time the device uploads data. Essentially placing the command in a *queue*.
