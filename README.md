@@ -13,6 +13,7 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 1. [Installing Software](#installing-software)
 1. [Connecting MKR WAN 1310 to Sensor](#connecting-mkr-wan-1310-to-sensor)
 1. [Connect MKR WAN 1310 to Computer](#connect-mkr-wan-1310-to-computer)
+1. [Running The Software](#running-the-software)
 1. [Testing Soil Sensor Using Chirpstack](#testing-soil-sensor-using-chirpstack)
 1. [LoRaWAN Downlink Commands](#lorawan-downlink-commands)
 
@@ -32,15 +33,15 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 
 ## Installing Software
 
-1. To connect to the MKR WAN 1310 board, you will need to install the [Arduino IDE](https://support.arduino.cc/hc/en-us/articles/360019833020-Download-and-install-Arduino-IDE)
+1. To connect to the `MKR WAN 1310` board, you will need to install the [Arduino IDE](https://support.arduino.cc/hc/en-us/articles/360019833020-Download-and-install-Arduino-IDE)
 1. Once you installed the IDE, you need to further install the board's software support by following the [SAMD21 core for MKR boards Documentation](https://docs.arduino.cc/software/ide-v1/tutorials/getting-started/cores/arduino-samd)
 
    <img src='./images/software_download.jpeg' alt='software download' height='200'>
-1. You will also need the library for mkrwan. Under Library Manager, look up "mkrwan" and install "MKRWAN by Arduino".
+1. You will also need the library for mkrwan. Under Library Manager, look up "mkrwan" and install `MKRWAN by Arduino`.
 
    <img src='./images/library_download.jpeg' alt='library download' height='400'>
     
-    >NOTE: At the time of configuring the board MKRWAN_v2 was not used because of bug issues related to the library.
+    >NOTE: At the time of configuring the board `MKRWAN_v2` was not used because of bug issues related to the library.
 
 ## Connecting MKR WAN 1310 to Sensor
 
@@ -48,7 +49,7 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 
     <img src='./images/sensor.jpeg' alt='Sensor' height='400'>
 
-2. Connect the wires from the sensor to the MKR WAN 1310 as shown:
+2. Connect the wires from the sensor to the `MKR WAN 1310` as shown:
 
     <img src='./images/sensor_connected.jpeg' alt='Connected Board' height='500'>
 
@@ -62,11 +63,31 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 
     `IMAGES GO HERE`
 
+## Running the Software
+
+1. Retrieve your MKR WAN 1310's DevEUI by using `main.ino` in your `Arduino IDE`. The serial monitor will display your DevEUI. When you run `main.ino` you should see a orange light glow on the board
+
+    <img src='./images/DevEUI.jpeg' alt='DevEUI' height='50'>
+
+    >NOTE: The program will fail because the device hasn't been given an App key
+
+1. Using the LoRaWAN Network Server’s portal or API, add your device with the option to use `OTAA` set to yes.
+
+1. Once you've added your device, generate an application key.
+
+1. Provide the application key to `arduino_secrets.h`
+
+1. Run `main.ino` in your `Arduino IDE`, if the device connects successfully the serial monitor will display the values the device is sending and your Network Server will receive a `join request` then the device's values.
+
+    <img src='./images/values_sent.jpeg' alt='values sent' height='100'>
+
+    >NOTE: `main.ino` is using `US915` as its LoraWAN region. This must be changed in `main.ino` for different countries.
+
+1. Finally for your Network Server to decript the uplink packets, use its portal or API to provide the codec: `codec.js`.
+
 ## Testing Soil Sensor Using Chirpstack
 
-[Chirpstack](https://www.chirpstack.io/) was used to setup our LoRaWAN network and a RAK Discover Kit 2 was used as our Gateway.
-
->NOTE: We are using `US915` as our LoraWAN region. This must be changed in `main.ino` for different countries.
+[Chirpstack](https://www.chirpstack.io/) was used to setup our LoRaWAN network and a `RAK Discover Kit 2` was used as our Gateway.
 
 1. Retrieve your MKR WAN 1310's DevEUI by using `main.ino` in your `Arduino IDE`. The serial monitor will display your DevEUI.
 
