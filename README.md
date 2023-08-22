@@ -58,7 +58,7 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 ## Connect MKR WAN 1310 to Computer
 
 1. Connect the board to your computer with the Micro USB wire
-   1. You should see a green light glow on the board
+   - You should see a green light glow on the board
 1. Go to Tools in Arduino IDE and select `Board` then select `Arduino SAMD Boards (32-bits ARM Cortex-M0+)` for the type of board. Finally select `Arduino MKR WAN 1310` for the board as shown: 
 
     <img src='./images/tools_board.jpeg' alt='Tools/Board' height='300'>
