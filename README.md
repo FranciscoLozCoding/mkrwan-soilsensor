@@ -89,6 +89,8 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 
 1. Finally for your Network Server to decript the uplink packets, use its portal or API to provide the codec: `codec.js`.
 
+>NOTE: Once you are done debugging the device, you can comment out the serial commands such as print().
+
 ## Testing Soil Sensor Using Chirpstack
 
 [Chirpstack](https://www.chirpstack.io/) was used as our Network Server and a `RAK Discover Kit 2` was used as our Gateway.
