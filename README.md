@@ -22,6 +22,7 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 - Measures soil temperature and soil moisture in volts
 - Communicates via LoRaWAN
 - Receives LoRaWAN Downlink Commands
+- Power: ~20 mA to operate correctly
 
 ## Hardware Needed
 
@@ -30,6 +31,9 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 - Modified Colorado State University soil sensor with four jumper wires with female input
 - LoRaWAN Gateway
     - we used [Rak Discover Kit 2](https://store.rakwireless.com/products/rak-discover-kit-2?variant=39942870302918)
+ 
+### Optional
+- [Solar Panel](https://www.amazon.com/gp/product/B0BP9P6XGW/)
 
 ## Installing Software
 
