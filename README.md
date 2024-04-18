@@ -32,8 +32,9 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 - LoRaWAN Gateway
     - we used [Rak Discover Kit 2](https://store.rakwireless.com/products/rak-discover-kit-2?variant=39942870302918)
  
-### Optional
+### If you want to deploy outdoors (optional)...
 - [Solar Panel](https://www.amazon.com/gp/product/B0BP9P6XGW/)
+- Container to hold the Arduino
 
 ## Installing Software
 
