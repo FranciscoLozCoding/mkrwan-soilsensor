@@ -24,6 +24,7 @@ int t_volt;
 int UplinkTime = 60000;
 
 void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);
   // put your setup code here, to run once:
   Serial.begin(115200); // Initialize Serial for debuging purposes.
   while (!Serial);
@@ -122,7 +123,7 @@ void loop() {
 
   int HexValue;
 
-  //decript downlink message (only 00,01...04)
+  //decript downlink message (only 00,01...05)
   Serial.print("Received: ");
   for (unsigned int j = 0; j < i; j++) {
 
@@ -154,6 +155,14 @@ void loop() {
   else if(HexValue == 4) //1 hour
   {
     UplinkTime = 3.6e+6;
+  }
+  else if(HexValue == 5) //Restarts the LoRaWAN module
+  {
+    digitalWrite(LED_BUILTIN, HIGH);
+    modem.restart();
+    setup();
+    digitalWrite(LED_BUILTIN, LOW);
+    return;
   }
   else //default
   {
