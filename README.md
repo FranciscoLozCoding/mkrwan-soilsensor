@@ -16,6 +16,7 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 1. [Running The Software](#running-the-software)
 1. [Testing Soil Sensor Using Chirpstack](#testing-soil-sensor-using-chirpstack)
 1. [LoRaWAN Downlink Commands](#lorawan-downlink-commands)
+1. [Deploying The Sensor](#deploying-the-sensor)
 
 ## Features
 
@@ -74,7 +75,7 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 
 ## Running the Software
 
-1. Retrieve your MKR WAN 1310's DevEUI by using `main.ino` in your `Arduino IDE`. The serial monitor will display your DevEUI. When you run `main.ino` you should see a orange light glow on the board
+1. Retrieve your MKR WAN 1310's DevEUI by using `setup.ino` in your `Arduino IDE`. The serial monitor will display your DevEUI. When you run `setup.ino` you should see a orange light glow on the board
 
     <img src='./images/DevEUI.jpeg' alt='DevEUI' height='50'>
 
@@ -86,11 +87,11 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 
 1. Provide the application key to `arduino_secrets.h`
 
-1. Run `main.ino` in your `Arduino IDE`, if the device connects successfully the serial monitor will display the values the device is sending and your Network Server will receive a `join request` then the device's values.
+1. Run `setup.ino` in your `Arduino IDE`, if the device connects successfully the serial monitor will display the values the device is sending and your Network Server will receive a `join request` then the device's values.
 
     <img src='./images/values_sent.jpeg' alt='values sent' height='100'>
 
-    >NOTE: `main.ino` is using `US915` as its LoraWAN region. This must be changed in `main.ino` for different countries.
+    >NOTE: `main.ino` and `setup.ino` is using `US915` as its LoraWAN region. This must be changed in both files for different countries.
 
 1. Finally for your Network Server to decript the uplink packets, use its portal or API to provide the codec: `codec.js`.
 
@@ -116,7 +117,7 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 
     >NOTE: Chripstack does not use `APP EUI` when connecting devices via `OTAA` so this can be left as is.
 
-1. Run `main.ino` in your `Arduino IDE`, if the device connects successfully the serial monitor will display the values the device is sending and chirpstack will receive a `join request` then the device's values.
+1. Run `setup.ino` in your `Arduino IDE`, if the device connects successfully the serial monitor will display the values the device is sending and chirpstack will receive a `join request` then the device's values.
 
     <img src='./images/values_sent.jpeg' alt='values sent' height='100'>
 
@@ -156,3 +157,7 @@ Using the Network Server’s portal or API to send a downlink command, the devic
     <img src='./images/downlink_command.png' alt='Downlink Command' height='600'>
 
     Pressing `Enqueue` will send the downlink command next time the device uploads data. Essentially placing the command in a *queue*.
+
+# Deploying The Sensor
+
+Once you have set up the sensor upload `main.ino` to the sensor as this removes all the unnecessary code that was used to help setup the sensor.
