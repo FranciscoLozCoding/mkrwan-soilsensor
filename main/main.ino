@@ -20,8 +20,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   modem.begin(US915);
 
-  delay(5000); //adding a delay(5000) between modem.begin(US915) and modem.joinOTAA(..) makes joining much more reliable. I am not sure why.
-  int connected = modem.joinOTAA(appEui, appKey,300000); //five minute timeout
+  int connected = modem.joinOTAA(appEui, appKey,15000); //15 sec timeout
 
   // Set poll interval to 60 secs.
   modem.minPollInterval(60);
@@ -64,7 +63,6 @@ void loop() {
   modem.endPacket(true);
 
   //check for downlink messages from gateway
-  delay(5000);
   if (!modem.available()) {
     delay(UplinkTime); //wait until next reading
     return; //no downlink, end iteration
