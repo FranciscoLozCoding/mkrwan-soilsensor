@@ -149,8 +149,9 @@ Using the Network Server’s portal or API to send a downlink command, the devic
     | Set Uplink interval = 15 min | 02 |
     | Set Uplink interval = 30 min | 03 |
     | Set Uplink interval = 1 hr | 04 |
+   | Restart lorawan module & send a join request | 05 |
 
-2. Example: Set the device's uplink interval to 5 minutes using Chirpstack.
+3. Example: Set the device's uplink interval to 5 minutes using Chirpstack.
 
     <img src='./images/downlink_command.png' alt='Downlink Command' height='600'>
 
