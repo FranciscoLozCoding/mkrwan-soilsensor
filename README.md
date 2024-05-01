@@ -150,13 +150,22 @@ Using the Network Server’s portal or API to send a downlink command, the devic
     | Set Uplink interval = 15 min | 02 |
     | Set Uplink interval = 30 min | 03 |
     | Set Uplink interval = 1 hr | 04 |
-   | Restart lorawan module & send a join request | 05 |
 
 3. Example: Set the device's uplink interval to 5 minutes using Chirpstack.
 
     <img src='./images/downlink_command.png' alt='Downlink Command' height='600'>
 
     Pressing `Enqueue` will send the downlink command next time the device uploads data. Essentially placing the command in a *queue*.
+
+### Restarting the Lorawan Module
+
+1. Send the downlink command (HEX) via Fport=1.
+
+    Command:
+
+    | Description | Command |
+    | ------------- |:-------:|
+   | Restart lorawan module & send a join request | 05 |
 
 # Deploying The Sensor
 
