@@ -18,7 +18,7 @@ int UplinkTime = 60000;
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
-  modem.begin(US915)
+  modem.begin(US915);
 
   delay(5000); //adding a delay(5000) between modem.begin(US915) and modem.joinOTAA(..) makes joining much more reliable. I am not sure why.
   int connected = modem.joinOTAA(appEui, appKey,300000); //five minute timeout
