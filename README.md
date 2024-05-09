@@ -175,3 +175,8 @@ Using the Network Server’s portal or API to send a downlink command, the devic
 # Deploying The Sensor
 
 Once you have set up the sensor upload `main.ino` to the sensor as this removes all the unnecessary code that was used to help setup the sensor.
+
+
+# Future Work
+- It is possible to lower the power consumption even further, [Forum post](https://forum.arduino.cc/t/how-can-i-achieve-the-104-a-power-consumption/619331).
+- Add more sensors to the device (ex; [ESP8266 Weather Station](https://github.com/GJKJ/WSKS/tree/master), I will just have to replace ESP8266 board with this mkrwan)
