@@ -5,6 +5,7 @@
 */
 
 #include <MKRWAN.h>
+#include <ArduinoLowPower.h>
 #include "arduino_secrets.h"
 using namespace std;
 
@@ -23,7 +24,31 @@ int m_volt;
 int t_volt;
 int UplinkTime = 60000;
 
+void blink() {
+  int WaitTime=300;
+  for (int i = 0; i < 4; i++) {
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(WaitTime);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(WaitTime);
+  }
+}
+
+bool joinNetwork() {
+  Serial.println("Attempting to join the network...");
+  
+  blink();
+  int connected = modem.joinOTAA(appEui, appKey, 15000); // 15 sec timeout
+  if (connected) {
+    return true;
+  } else {
+    Serial.println("Failed to join the network. Retrying...");
+    return false;
+  }
+}
+
 void setup() {
+  delay(5000); //allow some downtime to upload a new sketch
   pinMode(LED_BUILTIN, OUTPUT);
   // put your setup code here, to run once:
   Serial.begin(115200); // Initialize Serial for debuging purposes.
@@ -38,12 +63,17 @@ void setup() {
   Serial.print("Your device EUI is: ");
   Serial.println(modem.deviceEUI());
 
-  delay(5000); //adding a delay(5000) between modem.begin(US915) and modem.joinOTAA(..) makes joining much more reliable. I am not sure why.
+  delay(5000);
 
-  int connected = modem.joinOTAA(appEui, appKey,300000); //five minute timeout
-  if (!connected) {
-    Serial.println("Something went wrong; are you indoor? Move near a window and retry");
-    while (1) {}
+ if (joinNetwork()) {
+    int waitTime = 10000;
+    while (!joinNetwork()) {
+      delay(waitTime);
+      // Double the wait time, up to a maximum of 15 minutes
+      if (waitTime < 900000) {
+        waitTime *= 2;
+      }
+    }
   }
 
   // Set poll interval to 60 secs.
@@ -55,6 +85,30 @@ void setup() {
   modem.setPort(10);
   modem.dataRate(3);
   modem.setADR(true);
+}
+
+void end() {
+  // put pins to LOW
+  // digitalWrite(POWER_PIN, LOW);
+
+  // set pins as INPUT
+  // they were set as OUTPUT by modem.begin()
+  // but they can be set back
+  // to INPUT to reduce consumption by ~0.30mA
+  // pinMode(LORA_IRQ_DUMB, INPUT);
+  // pinMode(LORA_BOOT0, INPUT);
+  // pinMode(LORA_RESET, INPUT);
+
+  modem.sleep(true);
+  LowPower.deepSleep(UplinkTime); 
+  // delay(UplinkTime);
+
+  //set back
+  // pinMode(LORA_IRQ_DUMB, OUTPUT);
+  // pinMode(LORA_BOOT0, OUTPUT);
+  // pinMode(LORA_RESET, OUTPUT);
+  // digitalWrite(POWER_PIN, HIGH);
+  return;
 }
 
 void loop() {
@@ -104,6 +158,8 @@ void loop() {
     Serial.println("Error sending message :(");
     Serial.println("(you may send a limited amount of messages per minute, depending on the signal strength");
     Serial.println("it may vary from 1 message every couple of seconds to 1 message every minute)");
+    end();
+    return;
   }
 
   //check for downlink messages from gateway
@@ -111,6 +167,7 @@ void loop() {
   if (!modem.available()) {
     Serial.println("No downlink message received at this time.");
     delay(UplinkTime); //wait until next reading
+    end();
     return; //no downlink, end iteration
   }
 
@@ -173,5 +230,6 @@ void loop() {
 
   delay(UplinkTime); //wait until next reading
 
+  end();
   return; //end iteration
 }

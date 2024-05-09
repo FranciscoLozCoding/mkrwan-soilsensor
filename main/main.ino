@@ -1,4 +1,5 @@
 #include <MKRWAN.h>
+#include <ArduinoLowPower.h>
 #include "arduino_secrets.h"
 using namespace std;
 
@@ -16,26 +17,75 @@ int m_volt;
 int t_volt;
 int UplinkTime = 60000;
 
+void blink() {
+  int WaitTime=300;
+  for (int i = 0; i < 4; i++) {
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(WaitTime);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(WaitTime);
+  }
+}
+
+bool joinNetwork() {  
+  blink();
+  int connected = modem.joinOTAA(appEui, appKey, 15000); // 15 sec timeout
+  if (connected) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 void setup() {
+  delay(5000); //allow some downtime to upload a new sketch
   pinMode(LED_BUILTIN, OUTPUT);
+
   modem.begin(US915);
 
-  int connected = modem.joinOTAA(appEui, appKey,15000); //15 sec timeout
+  if (joinNetwork()) {
+    int waitTime = 10000;
+    while (!joinNetwork()) {
+      delay(waitTime);
+      // Double the wait time, up to a maximum of 15 minutes
+      if (waitTime < 900000) {
+        waitTime *= 2;
+      }
+    }
+  }
 
   // Set poll interval to 60 secs.
   modem.minPollInterval(60);
   // NOTE: independent of this setting, the modem will
   // not allow sending more than one message every 2 minutes,
   // this is enforced by firmware and can not be changed.
-
   modem.setPort(10);
   modem.dataRate(3);
   modem.setADR(true);
 }
 
+void end() {
+  // set pins as INPUT
+  // they were set as OUTPUT by modem.begin()
+  // but they can be set back
+  // to INPUT to reduce consumption by ~0.30mA
+  pinMode(LORA_IRQ_DUMB, INPUT);
+  pinMode(LORA_BOOT0, INPUT);
+  pinMode(LORA_RESET, INPUT);
+
+  modem.sleep(true);
+  LowPower.deepSleep(UplinkTime); 
+
+  //set back
+  pinMode(LORA_IRQ_DUMB, OUTPUT);
+  pinMode(LORA_BOOT0, OUTPUT);
+  pinMode(LORA_RESET, OUTPUT);
+  return;
+}
+
 void loop() {
-  m_volt = analogRead (MOISTURE_PIN);
-  t_volt = analogRead (TEMP_PIN);
+  m_volt = analogRead(MOISTURE_PIN);
+  t_volt = analogRead(TEMP_PIN);
 
   //Cayenne encoding
   uint8_t payload[30]; // Allow for up to 30 byte payload
@@ -60,11 +110,16 @@ void loop() {
   for (uint8_t c = 0; c < idx; c++) {
     modem.write(payload[c]);
   }
-  modem.endPacket(true);
+  int err = modem.endPacket(true);
+
+  if (!(err > 0)) {
+    end();
+    return;
+  }
 
   //check for downlink messages from gateway
   if (!modem.available()) {
-    delay(UplinkTime); //wait until next reading
+    end();
     return; //no downlink, end iteration
   }
 
@@ -117,7 +172,7 @@ void loop() {
     UplinkTime = 60000;
   }
 
-  delay(UplinkTime); //wait until next reading
+  end();
   return; //end iteration
 }
 
