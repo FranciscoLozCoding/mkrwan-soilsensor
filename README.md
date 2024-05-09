@@ -23,7 +23,7 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 - Measures soil temperature and soil moisture in volts
 - Communicates via LoRaWAN
 - Receives LoRaWAN Downlink Commands
-- Power: ~20 amps to operate correctly
+- Power: ~22 amps to operate correctly
 
 ## Hardware Needed
 
