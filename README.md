@@ -24,6 +24,9 @@ This repo shows how to connect a CSU soil sensor to a MKR WAN 1310 to give the s
 - Communicates via LoRaWAN
 - Receives LoRaWAN Downlink Commands
 - Power: ~20 mA to operate correctly
+    - When it is idle, ~10 mA
+    - When it sends a lora packet, ~20 mA
+
 
 ## Hardware Needed
 
@@ -150,6 +153,8 @@ Using the Network Server’s portal or API to send a downlink command, the devic
     | Set Uplink interval = 15 min | 02 |
     | Set Uplink interval = 30 min | 03 |
     | Set Uplink interval = 1 hr | 04 |
+
+> NOTE: Please note that the measurement interval can vary based on factors such as battery and signal strength, potentially leading to longer intervals. Additionally, after sending a measurement, the device enters a deep sleep mode, which results in a longer wait time for it to awaken. Thus, even in optimal conditions, the interval is extended by ~30 sec.
 
 3. Example: Set the device's uplink interval to 5 minutes using Chirpstack.
 
