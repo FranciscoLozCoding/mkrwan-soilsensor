@@ -1,179 +1,227 @@
+/*
+ * Merged CSU Soil Sensor MKR WAN 1310 Firmware
+ * Combines production-ready structure from EXO sonde code with CSU soil sensor readings
+ */
+
+#include <Arduino.h>
 #include <MKRWAN.h>
 #include <ArduinoLowPower.h>
+#include <Adafruit_SleepyDog.h>
+#include <FlashStorage.h>
 #include "arduino_secrets.h"
-using namespace std;
 
+// Debug flags
+const bool DEBUG = false;
+#define dbg_print(x)     if (DEBUG) Serial.print(x)
+#define dbg_println(x)   if (DEBUG) Serial.println(x)
+
+// LoRaWAN credentials
 LoRaModem modem;
-
-// Uncomment if using the Murata chip as a module
-// LoRaModem modem(Serial1);
-
 String appEui = SECRET_APP_EUI;
 String appKey = SECRET_APP_KEY;
 
-const int MOISTURE_PIN = 0;    // Pin to read soil sensor
-const int TEMP_PIN = 1;    // Pin to read soil sensor
-int m_volt;
-int t_volt;
-int UplinkTime = 60000;
+// Soil sensor analog pins
+const int MOISTURE_PIN = A0;
+const int TEMP_PIN     = A1;
 
-void blink() {
-  int WaitTime=300;
-  for (int i = 0; i < 4; i++) {
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(WaitTime);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(WaitTime);
-  }
+// Default uplink interval: 60 seconds (in ms)
+const uint32_t DEFAULT_UPLINK_MS = 60000;
+uint32_t UplinkTime = DEFAULT_UPLINK_MS;
+
+// Persistent storage of uplink interval
+typedef struct {
+    uint32_t uplink_ms;
+} PersistentConfig;
+FlashStorage(config_store, PersistentConfig);
+
+// --- WATCHDOG UTILITIES ---
+// Reset the watchdog timer and optionally log a tag
+void pingWatchdog(const char* tag = "") {
+    Watchdog.reset();
+    if (DEBUG && tag[0] != '\0') {
+        dbg_print("[WDT] ping: ");
+        dbg_println(tag);
+    }
 }
 
-bool joinNetwork() {  
-  blink();
-  int connected = modem.joinOTAA(appEui, appKey, 15000); // 15 sec timeout
-  if (connected) {
+// Delay in ms while periodically pinging the watchdog
+void mydelay(uint32_t ms) {
+    uint32_t elapsed = 0;
+    while (elapsed < ms) {
+        pingWatchdog();
+        delay(100);
+        elapsed += 100;
+    }
+}
+
+// Load saved uplink interval or set default
+void loadConfig() {
+    pingWatchdog("loadConfig");
+    PersistentConfig cfg = config_store.read();
+    if (cfg.uplink_ms >= 60000 && cfg.uplink_ms <= 7200000) {
+        UplinkTime = cfg.uplink_ms;
+    } else {
+        UplinkTime = DEFAULT_UPLINK_MS;
+    }
+    dbg_print("Loaded UplinkTime (ms): "); dbg_println(UplinkTime);
+}
+
+// Save current uplink interval
+void saveConfig() {
+    pingWatchdog("saveConfig");
+    PersistentConfig current = config_store.read();
+    if (current.uplink_ms != UplinkTime) {
+        config_store.write({ UplinkTime });
+        dbg_print("Saved UplinkTime (ms): "); dbg_println(UplinkTime);
+    }
+}
+
+// Simple LED blink for status indication
+void blink(int times = 4, int delayMs = 300) {
+    for (int i = 0; i < times; i++) {
+        digitalWrite(LED_BUILTIN, HIGH);
+        mydelay(delayMs);
+        digitalWrite(LED_BUILTIN, LOW);
+        mydelay(delayMs);
+    }
+}
+
+// Join LoRaWAN via OTAA with retry/backoff
+bool joinNetwork() {
+    pingWatchdog("joinNetwork");
+    blink();
+    bool joined = modem.joinOTAA(appEui, appKey, 15000);
+    if (!joined) {
+        return false;
+    }
     return true;
-  } else {
-    return false;
-  }
+}
+
+// Enter deep sleep until next uplink
+void enterSleep() {
+    pingWatchdog("enterSleep");
+    // Release LoRa I/O pins to reduce current
+    pinMode(LORA_IRQ_DUMB, INPUT);
+    pinMode(LORA_BOOT0,    INPUT);
+    pinMode(LORA_RESET,    INPUT);
+    modem.sleep(true);
+    dbg_print("Sleeping for ms: "); dbg_println(UplinkTime);
+    LowPower.deepSleep(UplinkTime);
+    // Upon wake, pins reset back by hardware
+}
+
+// Handle downlink to adjust uplink interval
+void handleDownlink() {
+    pingWatchdog("handleDownlink");
+    if (!modem.available()) return;
+    uint8_t buf[64];
+    int len = 0;
+    while (modem.available() && len < (int)sizeof(buf)) {
+        pingWatchdog("downlinkRead");
+        buf[len++] = modem.read();
+    }
+    if (len == 0) return;
+    int code = buf[len-1] & 0x0F; // last nibble
+    uint32_t newInterval;
+    switch (code) {
+        case 0: newInterval = 60000;    break;
+        case 1: newInterval = 300000;   break;
+        case 2: newInterval = 900000;   break;
+        case 3: newInterval = 1800000;  break;
+        case 4: newInterval = 3600000;  break;
+        case 5: modem.restart();        return;
+        default: newInterval = DEFAULT_UPLINK_MS;
+    }
+    if (newInterval != UplinkTime) {
+        UplinkTime = newInterval;
+        saveConfig();
+    }
 }
 
 void setup() {
-  delay(5000); //allow some downtime to upload a new sketch
-  pinMode(LED_BUILTIN, OUTPUT);
+    if (DEBUG) {
+        Serial.begin(115200);
+        while (!Serial) {
+            pingWatchdog("SerialWait");
+        }
+    }
+    pinMode(LED_BUILTIN, OUTPUT);
 
-  modem.begin(US915);
+    // Load uplink interval
+    loadConfig();
 
-  if (joinNetwork()) {
+    // Initialize modem
+    if (!modem.begin(US915)) {
+        dbg_println("Failed to start modem");
+        while (1) {
+            pingWatchdog("modemInitFail");
+        }
+    }
+    dbg_print("Your module version is: "); dbg_println(modem.version());
+    dbg_print("Your device EUI is: "); dbg_println(modem.deviceEUI());
+
+    modem.minPollInterval(60);
+    modem.setPort(10);
+    modem.dataRate(3);
+    modem.setADR(true);
+
+    // Join network with exponential backoff
     int waitTime = 10000;
     while (!joinNetwork()) {
-      delay(waitTime);
-      // Double the wait time, up to a maximum of 15 minutes
-      if (waitTime < 900000) {
-        waitTime *= 2;
-      }
+        dbg_println("Join failed, retrying...");
+        mydelay(waitTime);
+        if (waitTime < 900000) waitTime *= 2;
     }
-  }
 
-  // Set poll interval to 60 secs.
-  modem.minPollInterval(60);
-  // NOTE: independent of this setting, the modem will
-  // not allow sending more than one message every 2 minutes,
-  // this is enforced by firmware and can not be changed.
-  modem.setPort(10);
-  modem.dataRate(3);
-  modem.setADR(true);
-}
-
-void end() {
-  // set pins as INPUT
-  // they were set as OUTPUT by modem.begin()
-  // but they can be set back
-  // to INPUT to reduce consumption by ~0.30mA
-  pinMode(LORA_IRQ_DUMB, INPUT);
-  pinMode(LORA_BOOT0, INPUT);
-  pinMode(LORA_RESET, INPUT);
-
-  modem.sleep(true);
-  LowPower.deepSleep(UplinkTime); 
-
-  //set back
-  pinMode(LORA_IRQ_DUMB, OUTPUT);
-  pinMode(LORA_BOOT0, OUTPUT);
-  pinMode(LORA_RESET, OUTPUT);
-  return;
+    // Enable watchdog (max 16s)
+    int wd = Watchdog.enable(16000);
+    dbg_print("Watchdog timeout (ms): "); dbg_println(wd);
 }
 
 void loop() {
-  m_volt = analogRead(MOISTURE_PIN);
-  t_volt = analogRead(TEMP_PIN);
+    pingWatchdog("loopStart");
+    // Read sensors
+    int m_raw = analogRead(MOISTURE_PIN);
+    int t_raw = analogRead(TEMP_PIN);
+    int moisture = m_raw * 100;
+    int temp     = t_raw * 100;
 
-  //Cayenne encoding
-  uint8_t payload[30]; // Allow for up to 30 byte payload
-  int tempToSend = (int) (t_volt * 100);
-  int MoistToSend = (int) (m_volt * 100);
-  int idx = 0;
+    // Build Cayenne LPP payload
+    uint8_t payload[16];
+    int idx = 0;
+    // Temperature (channel 1)
+    payload[idx++] = 1;
+    payload[idx++] = 103;
+    payload[idx++] = highByte(temp);
+    payload[idx++] = lowByte(temp);
+    // Moisture (channel 2)
+    payload[idx++] = 2;
+    payload[idx++] = 104;
+    payload[idx++] = highByte(moisture);
+    payload[idx++] = lowByte(moisture);
 
-  //temperature Cayenne encoding
-  payload[idx++] = 1; //data channel
-  payload[idx++] = 103; //temp data type
-  payload[idx++] = highByte(tempToSend); //whole number
-  payload[idx++] = lowByte(tempToSend); //decimal number
-  
-  //moisture Cayenne encoding
-  payload[idx++] = 2; //data channel
-  payload[idx++] = 104; //moisture data type
-  payload[idx++] = highByte(MoistToSend); //whole number
-  payload[idx++] = lowByte(MoistToSend); //decimal number
+    //print values being sent
+    dbg_println();
+    dbg_print("Temp: "); dbg_println(moisture);
+    dbg_print("Moisture: "); dbg_println(temp);
 
-  //send packets
-  modem.beginPacket();
-  for (uint8_t c = 0; c < idx; c++) {
-    modem.write(payload[c]);
-  }
-  int err = modem.endPacket(true);
+    // Send packet with retries
+    pingWatchdog("beforeSend");
+    modem.beginPacket();
+    modem.write(payload, idx);
+    int err = modem.endPacket(true);
+    if (!(err > 0)) {
+        dbg_println("Uplink error");
+    }
 
-  if (!(err > 0)) {
-    end();
-    return;
-  }
+    // Process any downlink
+    handleDownlink();
 
-  //check for downlink messages from gateway
-  if (!modem.available()) {
-    end();
-    return; //no downlink, end iteration
-  }
+    // Indicate activity
+    blink(2, 100);
 
-  //get downlink message
-  char rcv[64];
-  int i = 0;
-  while (modem.available()) {
-    rcv[i++] = (char)modem.read();
-  }
-
-  int HexValue;
-
-  //decript downlink message (only 00,01...05)
-  for (unsigned int j = 0; j < i; j++) {
-    //store Hex value
-    HexValue = rcv[j] & 0xF;
-  }
-
-  //change uplink interval based on downlink message
-  if(HexValue == 0) //1 minute
-  {
-    UplinkTime = 60000;
-  }
-  else if(HexValue == 1) //5 minutes
-  {
-    UplinkTime = 300000;
-  }
-  else if(HexValue == 2) //15 minutes
-  {
-    UplinkTime = 900000;
-  }
-  else if(HexValue == 3) //30 minutes
-  {
-    UplinkTime = 1.8e+6;
-  }
-  else if(HexValue == 4) //1 hour
-  {
-    UplinkTime = 3.6e+6;
-  }
-  else if(HexValue == 5) //Restarts the LoRaWAN module
-  {
-    digitalWrite(LED_BUILTIN, HIGH);
-    modem.restart();
-    setup();
-    digitalWrite(LED_BUILTIN, LOW);
-    return;
-  }
-  else //default
-  {
-    UplinkTime = 60000;
-  }
-
-  end();
-  return; //end iteration
+    // Sleep until next cycle
+    enterSleep();
 }
 
 
